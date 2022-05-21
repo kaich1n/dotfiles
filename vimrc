@@ -1,207 +1,111 @@
-" based on http://github.com/jferris/config_files/blob/master/vimrc
+" Configuration file for vim
 
-" Use Vim settings, rather then Vi settings (much better!).
-" This must be first, because it changes other options as a side effect.
-set nocompatible
+" Normally we use vim-extensions. If you want true vi-compatibility
+" remove change the following statements
+set nocompatible	" Use Vim defaults instead of 100% vi compatibility
+set backspace=indent,eol,start	" more powerful backspacing
 
-" allow backspacing over everything in insert mode
-set backspace=indent,eol,start
-
-set nobackup
-set nowritebackup
-set history=50		" keep 50 lines of command line history
+set textwidth=0		" Don't wrap words by default
+set nobackup		" Don't keep a backup file
+set viminfo='20,\"50	" read/write a .viminfo file, don't store more than
+			" 50 lines of registers
+set history=500		" keep 50 lines of command line history
 set ruler		" show the cursor position all the time
-set showcmd		" display incomplete commands
-set incsearch		" do incremental searching
-
-" Don't use Ex mode, use Q for formatting
-map Q gq
-
-" This is an alternative that also works in block mode, but the deleted
-" text is lost and it only works for putting the current register.
-"vnoremap p "_dp
-
-" Switch syntax highlighting on, when the terminal has colors
-" Also switch on highlighting the last used search pattern.
-if (&t_Co > 2 || has("gui_running")) && !exists("syntax_on")
-  syntax on
-  set hlsearch
-endif
-
-" Switch wrap off for everything
-set nowrap
-
-" Only do this part when compiled with support for autocommands.
-if has("autocmd")
-  " Enable file type detection.
-  " Use the default filetype settings, so that mail gets 'tw' set to 72,
-  " 'cindent' is on in C files, etc.
-  " Also load indent files, to automatically do language-dependent indenting.
-  filetype plugin indent on
-
-  " Set File type to 'text' for files ending in .txt
-  autocmd BufNewFile,BufRead *.txt setfiletype text
-
-  " Enable soft-wrapping for text files
-  autocmd FileType text,markdown,html,xhtml,eruby setlocal wrap linebreak nolist
-
-  " Put these in an autocmd group, so that we can delete them easily.
-  augroup vimrcEx
-  au!
-
-  " For all text files set 'textwidth' to 78 characters.
-  " autocmd FileType text setlocal textwidth=78
-
-  " When editing a file, always jump to the last known cursor position.
-  " Don't do it when the position is invalid or when inside an event handler
-  " (happens when dropping a file on gvim).
-  autocmd BufReadPost *
-    \ if line("'\"") > 0 && line("'\"") <= line("$") |
-    \   exe "normal g`\"" |
-    \ endif
-
-  " Automatically load .vimrc source when saved
-  autocmd BufWritePost .vimrc source $MYVIMRC
-
-  augroup END
-
-else
-
-  set autoindent		" always set autoindenting on
-
-endif " has("autocmd")
-
-" if has("folding")
-  " set foldenable
-  " set foldmethod=syntax
-  " set foldlevel=1
-  " set foldnestmax=2
-  " set foldtext=strpart(getline(v:foldstart),0,50).'\ ...\ '.substitute(getline(v:foldend),'^[\ #]*','','g').'\ '
-" endif
-
-" Softtabs, 2 spaces
-set tabstop=2
-set shiftwidth=2
+set nu
 set expandtab
+" Suffixes that get lower priority when doing tab completion for filenames.
+" These are files we are not likely to want to edit or read.
+set suffixes=.bak,~,.swp,.o,.info,.aux,.log,.dvi,.bbl,.blg,.brf,.cb,.ind,.idx,.ilg,.inx,.out,.toc
 
-" Always display the status line
-set laststatus=2
-
-" \ is the leader character
-let mapleader = ","
-
-" Edit the README_FOR_APP (makes :R commands work)
-map <Leader>R :e doc/README_FOR_APP<CR>
-
-" Leader shortcuts for Rails commands
-map <Leader>m :Rmodel 
-map <Leader>c :Rcontroller 
-map <Leader>v :Rview 
-map <Leader>u :Runittest 
-map <Leader>f :Rfunctionaltest 
-map <Leader>tm :RTmodel 
-map <Leader>tc :RTcontroller 
-map <Leader>tv :RTview 
-map <Leader>tu :RTunittest 
-map <Leader>tf :RTfunctionaltest 
-map <Leader>sm :RSmodel 
-map <Leader>sc :RScontroller 
-map <Leader>sv :RSview 
-map <Leader>su :RSunittest 
-map <Leader>sf :RSfunctionaltest 
-
-" Hide search highlighting
-map <Leader>h :set invhls <CR>
-
-" Opens an edit command with the path of the currently edited file filled in
-" Normal mode: <Leader>e
-map <Leader>e :e <C-R>=expand("%:p:h") . "/" <CR>
-
-" Opens a tab edit command with the path of the currently edited file filled in
-" Normal mode: <Leader>t
-map <Leader>te :tabe <C-R>=expand("%:p:h") . "/" <CR>
-
-" Inserts the path of the currently edited file into a command
-" Command mode: Ctrl+P
-cmap <C-P> <C-R>=expand("%:p:h") . "/" <CR>
-
-" Duplicate a selection
-" Visual mode: D
-vmap D y'>p
-
-" Press Shift+P while in visual mode to replace the selection without
-" overwriting the default register
-vmap P p :call setreg('"', getreg('0')) <CR>
-
-" For Haml
-au! BufRead,BufNewFile *.haml         setfiletype haml
-
-" No Help, please
-nmap <F1> <Esc>
-
-" Press ^F from insert mode to insert the current file name
-imap <C-F> <C-R>=expand("%")<CR>
-
-" Maps autocomplete to tab
-imap <Tab> <C-N>
-
-imap <C-L> <Space>=><Space>
-
-" Display extra whitespace
-" set list listchars=tab:»·,trail:·
-
-" Edit routes
-command! Rroutes :e config/routes.rb
-command! Rschema :e db/schema.rb
-
-" Local config
-if filereadable(".vimrc.local")
-  source .vimrc.local
+" We know xterm-debian is a color terminal
+if &term =~ "xterm-debian" || &term =~ "xterm-xfree86"
+  set t_Co=16
+  set t_Sf=[3%dm
+  set t_Sb=[4%dm
 endif
 
-" Use Ack instead of Grep when available
-if executable("ack")
-  set grepprg=ack\ -H\ --nogroup\ --nocolor\ --ignore-dir=tmp\ --ignore-dir=coverage
-endif
+" Make p in Visual mode replace the selected text with the "" register.
+vnoremap p <Esc>:let current_reg = @"<CR>gvdi<C-R>=current_reg<CR><Esc>
 
-" Color scheme
-" colorscheme vividchalk
-" highlight NonText guibg=#060606
-" highlight Folded  guibg=#0A0A0A guifg=#9090D0
+hi search guibg=LightBlue
 
-" Numbers
-set number
-set numberwidth=5
+" Vim5 and later versions support syntax highlighting. Uncommenting the next
+" line enables syntax highlighting by default.
+ syntax on
 
-" Snippets are activated by Shift+Tab
-let g:snippetsEmu_key = "<S-Tab>"
+" Debian uses compressed helpfiles. We must inform vim that the main
+" helpfiles is compressed. Other helpfiles are stated in the tags-file.
+"set helpfile=$VIMRUNTIME/doc/help.txt.gz
 
-" Tab completion options
-" (only complete to the longest unambiguous match, and show a menu)
-set completeopt=longest,menu
-set wildmode=list:longest,list:full
-set complete=.,t
+if has("autocmd")
+ " Enabled file type detection
+ " Use the default filetype settings. If you also want to load indent files
+ " to automatically do language-dependent indenting add 'indent' as well.
+ filetype plugin on
+ " when we copy multi-line code , we should execute "filetype plugin on", and reopen file to copy
+endif " has ("autocmd")
 
-" case only matters with mixed case expressions
-set ignorecase
-set smartcase
+" Some Debian-specific things
+augroup filetype
+  au BufRead reportbug.*		set ft=mail
+  au BufRead reportbug-*		set ft=mail
+augroup END
 
-" Tags
-let g:Tlist_Ctags_Cmd="ctags --exclude='*.js'"
-set tags=./tags;
 
-let g:fuf_splitPathMatching=1
+" The following are commented out as they cause vim to behave a lot
+" different from regular vi. They are highly recommended though.
+set showcmd		" Show (partial) command in status line.
+"set showmatch		" Show matching brackets.
+"set ignorecase		" Do case insensitive matching
+"set incsearch		" Incremental search
+"set autowrite		" Automatically save before commands like :next and :make
+set dictionary=.c-c++-keywords.list
+set ls=2
+set hls
+set sw=4
+set ts=4
+filetype plugin indent on
+autocmd BufReadPost * if line("'\"") | exe "normal '\"" | endif
+"set sm
+"set bg=dark
 
-" Open URL
-command -bar -nargs=1 OpenURL :!open <args>
-function! OpenURL()
-  let s:uri = matchstr(getline("."), '[a-z]*:\/\/[^ >,;:]*')
-  echo s:uri
-  if s:uri != ""
-	  exec "!open \"" . s:uri . "\""
-  else
-	  echo "No URI found in line."
-  endif
-endfunction
-map <Leader>w :call OpenURL()<CR>
 
+let g:miniBufExplMapWindowNavVim = 1 
+let g:miniBufExplMapWindowNavArrows = 1 
+let g:miniBufExplMapCTabSwitchBufs = 1 
+let g:miniBufExplModSelTarget = 1 
+let g:alternateExtensions_CPP = "inc,h,H,HPP,hpp"
+
+
+"start configure for bufferlist.vim
+map <silent> <F3> :call BufferList()<CR>
+let g:BufferListWidth = 25
+"end of configure for bufferlist.vim
+
+
+"start configure for PreviewTag.vim
+command! -nargs=? -complete=tag_listfiles       PreviewTag call PreviewTag(<f-args>)
+map <F12> :PreviewTag<CR>
+"end of configure for PreviewTag.vim
+
+"set statusline=%<%f%<%{FileTime()}%<%h%m%r%=%-20.(line=%03l,col=%02c%V,totlin=%L%)\%h%m%r%=%-30(,BfNm=%n%Y%)\%P\ 
+"set statusline=%<%f%<%{FileTime()}%<%h%m%r%=%-20.(line=%03l,col=%02c%V,totlin=%L%)\%h%m%r%=%-30(,BfNm=%n%Y%)\%P\*%=%{CurTime()} 
+"set rulerformat=%15(%c%V\ %p%%%) 
+"set rulerformat=%<%f%<%{FileTime()}%<%h%m%r%=%-20.(line=%03l,col=%02c%V,totlin=%L%)\%h%m%r%=%-30(,BfNm=%n%Y%)\%P\*%=%{CurTime()} 
+
+fu! FileTime() 
+        let ext=tolower(expand("%:e")) 
+        let fname=tolower(expand('%<')) 
+        let filename=fname . '.' . ext 
+        let msg="" 
+        let msg=msg." ".strftime("(Modified %b,%d %y %H:%M:%S)",getftime(filename)) 
+        return msg 
+endf 
+
+fu! CurTime() 
+        let ftime="" 
+        let ftime=ftime." ".strftime("%b,%d %y %H:%M:%S") 
+        return ftime 
+endf
+highlight Search term=standout ctermfg=0 ctermbg=3
+hi Comment ctermfg=6
